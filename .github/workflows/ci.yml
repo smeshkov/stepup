@@ -12,14 +12,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Check format
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "Go code is not formatted. Run 'make fmt'."
+            gofmt -d .
+            exit 1
+          fi
 
       - name: Run linter
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
 
-      - name: Run tests
-        run: go test ./...
+      - name: Vet
+        run: make vet
+
+      # - name: Build
+      #   run: make build
+
+      - name: Test
+        run: make test
