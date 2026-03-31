@@ -28,11 +28,11 @@ jobs:
             exit 1
           fi
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9
-
       - name: Vet
         run: make vet
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9      
 
       # - name: Build
       #   run: make build

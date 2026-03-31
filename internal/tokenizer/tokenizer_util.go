@@ -4,9 +4,14 @@ import (
 	"github.com/dlclark/regexp2"
 )
 
-// This is the precise regex used by GPT-4 and modern models.
-// It ensures BPE never merges a word with adjacent punctuation or cross-sentence spaces.
-const gpt4Pattern = `(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+`
+const (
+	// This is the precise regex used by GPT-4 and modern models.
+	// It ensures BPE never merges a word with adjacent punctuation or cross-sentence spaces.
+	gpt4Pattern = `(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+`
+
+	// Byte-level vocabulary size (0-255)
+	baseVocabSize = 256
+)
 
 var splitRegex = regexp2.MustCompile(gpt4Pattern, regexp2.None)
 
@@ -28,7 +33,7 @@ func chunkText(text string) ([]string, error) {
 	return chunks, nil
 }
 
-// We need to update our getStats function to iterate over multiple chunks
+// getChunkedStats counts the frequency of every adjacent pair in the token slice
 func getChunkedStats(chunks [][]int) map[Pair]int {
 	counts := make(map[Pair]int)
 	for _, chunk := range chunks {

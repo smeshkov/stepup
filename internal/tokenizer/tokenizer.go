@@ -38,8 +38,8 @@ func (t *Tokenizer) TrainProduction(text string, targetVocabSize int) error {
 		chunks[i] = chunkIDs
 	}
 
-	numMerges := targetVocabSize - 256
-	nextID := 256
+	numMerges := targetVocabSize - baseVocabSize
+	nextID := baseVocabSize
 
 	// 3. The Chunked Training Loop
 	for range numMerges {
