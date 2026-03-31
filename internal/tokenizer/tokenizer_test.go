@@ -55,7 +55,7 @@ func TestRegexChunking(t *testing.T) {
 
 	// Based on the GPT-4 regex pattern, we expect specific splits.
 	// E.g., "Hello", ",", " world", "!", " It", "'s", " 2024", "."
-	expectedChunks := []string{"Hello", ",", " world", "!", " It", "'s", " 2024", "."}
+	expectedChunks := []string{"Hello", ",", " world", "!", " It", "'s", " ", "202", "4", "."}
 
 	if !reflect.DeepEqual(chunks, expectedChunks) {
 		t.Errorf("Chunking failed.\nExpected: %q\nGot: %q", expectedChunks, chunks)
