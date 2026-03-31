@@ -28,8 +28,8 @@ jobs:
             exit 1
           fi
 
-      - name: Run linter
-        run: make lint
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
 
       - name: Vet
         run: make vet
