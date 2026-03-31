@@ -13,10 +13,17 @@ type Tokenizer struct {
 }
 
 func NewTokenizer() *Tokenizer {
-	return &Tokenizer{
+	t := &Tokenizer{
 		Merges: make(map[Pair]int),
 		Vocab:  make(map[int][]byte),
 	}
+
+	// Pre-populate the base vocabulary (IDs 0-255 map to their single byte)
+	for i := range 256 {
+		t.Vocab[i] = []byte{byte(i)}
+	}
+
+	return t
 }
 
 // TrainProduction takes raw text, enforces regex boundaries, and trains the BPE rules.
@@ -64,6 +71,19 @@ func (t *Tokenizer) TrainProduction(text string, targetVocabSize int) error {
 		}
 
 		t.Merges[bestPair] = nextID
+
+		// Populate the Vocab map ---
+		// Fetch the raw bytes of the two tokens we just merged
+		leftBytes := t.Vocab[bestPair[0]]
+		rightBytes := t.Vocab[bestPair[1]]
+
+		// Safely combine them into a new byte slice
+		newBytes := make([]byte, len(leftBytes)+len(rightBytes))
+		copy(newBytes, leftBytes)
+		copy(newBytes[len(leftBytes):], rightBytes)
+
+		t.Vocab[nextID] = newBytes
+
 		nextID++
 	}
 
@@ -123,4 +143,22 @@ func (t *Tokenizer) Encode(text string) ([]int, error) {
 	}
 
 	return finalIDs, nil
+}
+
+// Decode takes a sequence of token IDs and converts them back to a string.
+func (t *Tokenizer) Decode(ids []int) string {
+	var out []byte
+
+	for _, id := range ids {
+		if bytes, exists := t.Vocab[id]; exists {
+			out = append(out, bytes...)
+		} else {
+			// In a true production system, you might append a specific
+			// <unk> (unknown) character block here, like ""
+			continue
+		}
+	}
+
+	// Go handles the UTF-8 decoding automatically when casting []byte to string
+	return string(out)
 }

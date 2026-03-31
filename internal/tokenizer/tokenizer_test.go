@@ -42,6 +42,13 @@ func TestTokenizer_EndToEnd(t *testing.T) {
 
 	t.Logf("Original text: %s", testStr)
 	t.Logf("Encoded Token IDs: %v", encodedIDs)
+
+	decodedText := tok.Decode(encodedIDs)
+	if decodedText != testStr {
+		t.Errorf("Round-trip failed.\nExpected: %q\nGot: %q", testStr, decodedText)
+	} else {
+		t.Logf("Successfully decoded back to: %q", decodedText)
+	}
 }
 
 func TestRegexChunking(t *testing.T) {
