@@ -5,6 +5,7 @@ package tokenizer
 type Pair [2]int
 
 // Tokenizer holds the state of our learned BPE rules.
+// To learn more about BPE watch https://youtu.be/HEikzVL-lZU?si=nuloRxsOFYjVbWv6
 type Tokenizer struct {
 	// Merges maps a pair of tokens to their new combined Token ID
 	Merges map[Pair]int

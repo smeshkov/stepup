@@ -6,6 +6,7 @@ import (
 )
 
 // Embedding represents our lookup table mapping Token IDs to dense vectors.
+// To learn more about embeddings read https://huggingface.co/spaces/hesamation/primer-llm-embedding
 type Embedding struct {
 	VocabSize int
 	DModel    int
