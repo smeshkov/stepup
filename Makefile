@@ -25,3 +25,6 @@ lint: ## Run golangci-lint if installed
 	else \
 		echo "golangci-lint not installed, skipping..."; \
 	fi
+
+example: ## Run example
+	go run cmd/example/main.go
