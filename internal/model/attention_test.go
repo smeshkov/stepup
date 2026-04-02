@@ -9,13 +9,13 @@ func TestSelfAttention_Forward(t *testing.T) {
 	dModel := 16
 	seqLen := 5
 
-	attn := NewSelfAttention(dModel)
+	attn := NewMultiHeadAttention(4, dModel)
 
 	// Create a dummy input tensor: 5 tokens, 16 dimensions
 	input := make([][]float32, seqLen)
-	for i := 0; i < seqLen; i++ {
+	for i := range seqLen {
 		input[i] = make([]float32, dModel)
-		for j := 0; j < dModel; j++ {
+		for j := range dModel {
 			// Populate with arbitrary small numbers
 			input[i][j] = float32(i) * 0.1
 		}
@@ -37,8 +37,8 @@ func TestSelfAttention_Forward(t *testing.T) {
 
 	// 2. Numerical Stability Check
 	// Ensure the matrix multiplications and Softmax didn't explode into NaNs
-	for i := 0; i < seqLen; i++ {
-		for j := 0; j < dModel; j++ {
+	for i := range seqLen {
+		for j := range dModel {
 			if math.IsNaN(float64(output[i][j])) {
 				t.Fatalf("Detected NaN in attention output at [%d][%d]", i, j)
 			}
@@ -59,8 +59,8 @@ func TestInitWeights(t *testing.T) {
 
 	// Ensure weights are not purely zeros (they should be slightly randomized)
 	allZero := true
-	for i := 0; i < rows; i++ {
-		for j := 0; j < cols; j++ {
+	for i := range rows {
+		for j := range cols {
 			if weights[i][j] != 0.0 {
 				allZero = false
 				break
