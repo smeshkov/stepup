@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Phase 1 — Data & Tokenization is implemented in `internal/tokenizer/`.
 - Phase 1 — Embeddings & Positional Encoding is implemented in `internal/model/`.
 - Phase 1 — Self-attention is implemented in `internal/model/`.
+- Phase 1 — Transformer Block is implemented in `internal/model/`.
 
 ## Development process
 

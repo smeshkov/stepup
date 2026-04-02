@@ -73,25 +73,25 @@ func main() {
 	fmt.Println("  ... (truncated)")
 
 	// ---------------------------------------------------------
-	// PHASE 3: The Beating Heart (Multi-Head Attention)
+	// PHASE 3: The Transformer Block
 	// ---------------------------------------------------------
-	fmt.Println("\n[5/5] Executing Multi-Head Attention...")
+	fmt.Println("\n[5/5] Executing Complete Transformer Block...")
 
-	numHeads := 4 // We split our 16 dimensions into 4 heads of 4 dimensions each
-	attn := model.NewMultiHeadAttention(numHeads, dModel)
+	numHeads := 4
+	block := model.NewTransformerBlock(numHeads, dModel)
 
-	// 'tensor' is the output from our PrepareInput function
-	contextualizedTensor, err := attn.Forward(tensor)
+	// 'tensor' is the contextualized output from PrepareInput
+	finalBlockOutput, err := block.Forward(tensor)
 	if err != nil {
-		log.Fatalf("Attention failed: %v", err)
+		log.Fatalf("Transformer Block failed: %v", err)
 	}
 
-	fmt.Println("\n=== 🧠 Attention Complete ===")
-	fmt.Printf("Output Shape : %d tokens x %d dimensions\n", len(contextualizedTensor), len(contextualizedTensor[0]))
-	fmt.Printf("Architecture : %d Heads (Tracking %d dimensions each)\n", numHeads, dModel/numHeads)
+	fmt.Println("\n=== 🧠 First Transformer Block Complete ===")
+	fmt.Printf("Input  Shape : %d tokens x %d dimensions\n", len(tensor), len(tensor[0]))
+	fmt.Printf("Output Shape : %d tokens x %d dimensions\n", len(finalBlockOutput), len(finalBlockOutput[0]))
 
-	fmt.Println("\nFirst Token Contextualized Vector (Mixed via Wo):")
-	for i, val := range contextualizedTensor[0] {
+	fmt.Println("\nFinal Processed Vector for Token 0:")
+	for i, val := range finalBlockOutput[0] {
 		if i < 4 {
 			fmt.Printf("  Dim %d: %f\n", i, val)
 		}
