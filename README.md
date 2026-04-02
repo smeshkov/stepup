@@ -3,7 +3,9 @@ I'll figure it out.
 
 ## Development documentation
 
-See [_docs/_dev.md](_docs/_dev.md).
+- See [_docs/_dev.md](_docs/_dev.md).
+- Claude's `CLAUDE.md`
+- Architecture `ARCHITECTURE.md`
 
 ## Tech stack
 
