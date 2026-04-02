@@ -91,3 +91,52 @@ func TestScaleAndSoftmax(t *testing.T) {
 		t.Errorf("Softmax probabilities did not sum to 1.0, got %f", sum)
 	}
 }
+
+func TestAddMatrices(t *testing.T) {
+	a := [][]float32{{1, 2}, {3, 4}}
+	b := [][]float32{{5, 6}, {7, 8}}
+	expected := [][]float32{{6, 8}, {10, 12}}
+
+	result := addMatrices(a, b)
+
+	for i := range expected {
+		for j := range expected[i] {
+			if !almostEqual(result[i][j], expected[i][j], 1e-5) {
+				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i][j], result[i][j])
+			}
+		}
+	}
+}
+
+func TestAddBias(t *testing.T) {
+	matrix := [][]float32{{1, 2}, {3, 4}}
+	bias := []float32{10, 20}
+	expected := [][]float32{{11, 22}, {13, 24}}
+
+	// addBias mutates the matrix in place
+	addBias(matrix, bias)
+
+	for i := range expected {
+		for j := range expected[i] {
+			if !almostEqual(matrix[i][j], expected[i][j], 1e-5) {
+				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i][j], matrix[i][j])
+			}
+		}
+	}
+}
+
+func TestRelu(t *testing.T) {
+	matrix := [][]float32{{-1.5, 0.0}, {2.5, -99.9}}
+	expected := [][]float32{{0.0, 0.0}, {2.5, 0.0}}
+
+	// relu mutates the matrix in place
+	relu(matrix)
+
+	for i := range expected {
+		for j := range expected[i] {
+			if !almostEqual(matrix[i][j], expected[i][j], 1e-5) {
+				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i][j], matrix[i][j])
+			}
+		}
+	}
+}

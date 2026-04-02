@@ -8,8 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Current state:**
 - Phase 1 — Data & Tokenization is implemented in `internal/tokenizer/`.
-- Phase 1 — Embeddings & Positional Encoding is implemented in `internal/model/`.
-- Phase 1 — Self-attention is implemented in `internal/model/`.
+- Phase 1 — Embeddings & Positional Encoding is implemented in `internal/model/model.go`.
+- Phase 1 — Multi-Head Attention is implemented in `internal/model/attention.go`.
+- Phase 1 — Feed-Forward Networks & Layer Norm is implemented in `internal/model/layers.go`.
 
 ## Development process
 
