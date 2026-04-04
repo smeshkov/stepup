@@ -19,7 +19,7 @@ func TestEmbedding_Forward(t *testing.T) {
 	// e.g., Token ID 2 will have weights [20, 21, 22, 23]
 	for i := range vocabSize {
 		for j := range dModel {
-			emb.Weights[i][j] = float32(i*10 + j)
+			emb.Weights.Set(i, j, float32(i*10+j))
 		}
 	}
 
@@ -30,15 +30,15 @@ func TestEmbedding_Forward(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	if len(output) != 2 || len(output[0]) != dModel {
-		t.Fatalf("Incorrect output dimensions. Got %dx%d, expected 2x4", len(output), len(output[0]))
+	if output.Rows != 2 || output.Cols != dModel {
+		t.Fatalf("Incorrect output dimensions. Got %dx%d, expected 2x4", output.Rows, output.Cols)
 	}
 
 	// Verify Token ID 2
 	expectedToken2 := []float32{20, 21, 22, 23}
 	for j := range dModel {
-		if !almostEqual(output[0][j], expectedToken2[j], 1e-5) {
-			t.Errorf("Embedding mismatch for token 2 at dim %d: got %f, want %f", j, output[0][j], expectedToken2[j])
+		if !almostEqual(output.Get(0, j), expectedToken2[j], 1e-5) {
+			t.Errorf("Embedding mismatch for token 2 at dim %d: got %f, want %f", j, output.Get(0, j), expectedToken2[j])
 		}
 	}
 
@@ -56,25 +56,25 @@ func TestPositionalEncoding(t *testing.T) {
 	pe := PrecomputePositionalEncoding(maxSeqLen, dModel)
 
 	// Check dimensions
-	if len(pe) != maxSeqLen || len(pe[0]) != dModel {
-		t.Fatalf("Incorrect PE dimensions. Got %dx%d, expected 5x4", len(pe), len(pe[0]))
+	if pe.Rows != maxSeqLen || pe.Cols != dModel {
+		t.Fatalf("Incorrect PE dimensions. Got %dx%d, expected 5x4", pe.Rows, pe.Cols)
 	}
 
 	// Mathematically verify Position 0
 	// PE(0, 0) = sin(0) = 0
 	// PE(0, 1) = cos(0) = 1
-	if !almostEqual(pe[0][0], 0.0, 1e-5) {
-		t.Errorf("PE(0,0) should be 0, got %f", pe[0][0])
+	if !almostEqual(pe.Get(0, 0), 0.0, 1e-5) {
+		t.Errorf("PE(0,0) should be 0, got %f", pe.Get(0, 0))
 	}
-	if !almostEqual(pe[0][1], 1.0, 1e-5) {
-		t.Errorf("PE(0,1) should be 1, got %f", pe[0][1])
+	if !almostEqual(pe.Get(0, 1), 1.0, 1e-5) {
+		t.Errorf("PE(0,1) should be 1, got %f", pe.Get(0, 1))
 	}
 
 	// Mathematically verify Position 1, Dimension 0
 	// PE(1, 0) = sin(1 / 10000^(0/4)) = sin(1) ≈ 0.84147
 	expectedSin1 := float32(math.Sin(1.0))
-	if !almostEqual(pe[1][0], expectedSin1, 1e-5) {
-		t.Errorf("PE(1,0) should be ~0.84147, got %f", pe[1][0])
+	if !almostEqual(pe.Get(1, 0), expectedSin1, 1e-5) {
+		t.Errorf("PE(1,0) should be ~0.84147, got %f", pe.Get(1, 0))
 	}
 }
 
@@ -88,7 +88,7 @@ func TestPrepareInput(t *testing.T) {
 
 	// Mock embedding weights for ID 1 to be all 1.0s
 	for j := range dModel {
-		emb.Weights[1][j] = 1.0
+		emb.Weights.Set(1, j, 1.0)
 	}
 
 	// Prepare input for a single token sequence: [1]
@@ -103,8 +103,8 @@ func TestPrepareInput(t *testing.T) {
 	expected := []float32{1.0, 2.0, 1.0, 2.0}
 
 	for j := range dModel {
-		if !almostEqual(finalInput[0][j], expected[j], 1e-5) {
-			t.Errorf("PrepareInput mismatch at dim %d: got %f, want %f", j, finalInput[0][j], expected[j])
+		if !almostEqual(finalInput.Get(0, j), expected[j], 1e-5) {
+			t.Errorf("PrepareInput mismatch at dim %d: got %f, want %f", j, finalInput.Get(0, j), expected[j])
 		}
 	}
 }

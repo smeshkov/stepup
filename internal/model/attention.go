@@ -5,24 +5,21 @@ import (
 	"math/rand"
 )
 
-// initWeights populates a matrix with small random values
-func initWeights(rows, cols int) [][]float32 {
-	w := make([][]float32, rows)
-	for i := range rows {
-		w[i] = make([]float32, cols)
-		for j := range cols {
-			w[i][j] = rand.Float32()*0.02 - 0.01
-		}
+// initWeights populates a tensor with small random values using a single allocation.
+func initWeights(rows, cols int) *Tensor {
+	t := NewTensor(rows, cols)
+	for i := range t.Data {
+		t.Data[i] = rand.Float32()*0.02 - 0.01
 	}
-	return w
+	return t
 }
 
 // Head represents a single Attention head.
 type Head struct {
 	DHead int
-	Wq    [][]float32 // Projects from [DModel] to [DHead]
-	Wk    [][]float32
-	Wv    [][]float32
+	Wq    *Tensor // Projects from [DModel] to [DHead]
+	Wk    *Tensor
+	Wv    *Tensor
 }
 
 func NewHead(dModel, dHead int) *Head {
@@ -35,7 +32,7 @@ func NewHead(dModel, dHead int) *Head {
 }
 
 // Forward executes Attention for this specific head
-func (h *Head) Forward(input [][]float32) [][]float32 {
+func (h *Head) Forward(input *Tensor) *Tensor {
 	// 1. Project input [seqLen, dModel] * [dModel, dHead] -> [seqLen, dHead]
 	Q := matMul(input, h.Wq)
 	K := matMul(input, h.Wk)
@@ -61,7 +58,7 @@ type MultiHeadAttention struct {
 	DModel   int
 	DHead    int
 	Heads    []*Head
-	Wo       [][]float32 // Final output projection [dModel, dModel]
+	Wo       *Tensor // Final output projection [dModel, dModel]
 }
 
 func NewMultiHeadAttention(numHeads, dModel int) *MultiHeadAttention {
@@ -85,26 +82,24 @@ func NewMultiHeadAttention(numHeads, dModel int) *MultiHeadAttention {
 }
 
 // Forward runs all heads, concatenates results, and applies the Wo projection.
-func (mha *MultiHeadAttention) Forward(input [][]float32) ([][]float32, error) {
-	seqLen := len(input)
+func (mha *MultiHeadAttention) Forward(input *Tensor) (*Tensor, error) {
+	seqLen := input.Rows
 
 	// 1. Collect outputs from all heads
 	// Each head returns a tensor of shape [seqLen, dHead]
-	headOutputs := make([][][]float32, mha.NumHeads)
+	headOutputs := make([]*Tensor, mha.NumHeads)
 	for i, head := range mha.Heads {
 		headOutputs[i] = head.Forward(input)
 	}
 
 	// 2. Concatenate the outputs
 	// We want to stitch [seqLen, dHead] * NumHeads back into [seqLen, dModel]
-	concatOut := make([][]float32, seqLen)
-	for i := 0; i < seqLen; i++ {
-		concatOut[i] = make([]float32, mha.DModel)
-
+	concatOut := NewTensor(seqLen, mha.DModel)
+	for i := range seqLen {
 		colOffset := 0
-		for h := 0; h < mha.NumHeads; h++ {
-			for j := 0; j < mha.DHead; j++ {
-				concatOut[i][colOffset+j] = headOutputs[h][i][j]
+		for h := range mha.NumHeads {
+			for j := range mha.DHead {
+				concatOut.Set(i, colOffset+j, headOutputs[h].Get(i, j))
 			}
 			colOffset += mha.DHead
 		}

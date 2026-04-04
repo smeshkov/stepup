@@ -12,12 +12,11 @@ func TestSelfAttention_Forward(t *testing.T) {
 	attn := NewMultiHeadAttention(4, dModel)
 
 	// Create a dummy input tensor: 5 tokens, 16 dimensions
-	input := make([][]float32, seqLen)
+	input := NewTensor(seqLen, dModel)
 	for i := range seqLen {
-		input[i] = make([]float32, dModel)
 		for j := range dModel {
 			// Populate with arbitrary small numbers
-			input[i][j] = float32(i) * 0.1
+			input.Set(i, j, float32(i)*0.1)
 		}
 	}
 
@@ -28,21 +27,22 @@ func TestSelfAttention_Forward(t *testing.T) {
 
 	// 1. Dimensionality Check
 	// The output of Self-Attention MUST perfectly match the input dimensions
-	if len(output) != seqLen {
-		t.Fatalf("Expected output sequence length %d, got %d", seqLen, len(output))
+	if output.Rows != seqLen {
+		t.Fatalf("Expected output sequence length %d, got %d", seqLen, output.Rows)
 	}
-	if len(output[0]) != dModel {
-		t.Fatalf("Expected output model dimension %d, got %d", dModel, len(output[0]))
+	if output.Cols != dModel {
+		t.Fatalf("Expected output model dimension %d, got %d", dModel, output.Cols)
 	}
 
 	// 2. Numerical Stability Check
 	// Ensure the matrix multiplications and Softmax didn't explode into NaNs
 	for i := range seqLen {
 		for j := range dModel {
-			if math.IsNaN(float64(output[i][j])) {
+			val := float64(output.Get(i, j))
+			if math.IsNaN(val) {
 				t.Fatalf("Detected NaN in attention output at [%d][%d]", i, j)
 			}
-			if math.IsInf(float64(output[i][j]), 0) {
+			if math.IsInf(val, 0) {
 				t.Fatalf("Detected Infinity in attention output at [%d][%d]", i, j)
 			}
 		}
@@ -53,18 +53,16 @@ func TestInitWeights(t *testing.T) {
 	rows, cols := 10, 10
 	weights := initWeights(rows, cols)
 
-	if len(weights) != rows || len(weights[0]) != cols {
+	if weights.Rows != rows || weights.Cols != cols {
 		t.Fatalf("initWeights dimension mismatch")
 	}
 
 	// Ensure weights are not purely zeros (they should be slightly randomized)
 	allZero := true
-	for i := range rows {
-		for j := range cols {
-			if weights[i][j] != 0.0 {
-				allZero = false
-				break
-			}
+	for _, v := range weights.Data {
+		if v != 0.0 {
+			allZero = false
+			break
 		}
 	}
 
