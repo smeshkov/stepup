@@ -1,5 +1,5 @@
-# stepup
-I'll figure it out.
+# Step Up
+This is learning project to build LLM from scratch in Go.
 
 ## Development documentation
 
