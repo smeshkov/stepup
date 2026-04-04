@@ -23,7 +23,7 @@ lint: ## Run custom-gcl if installed
 	@if command -v custom-gcl > /dev/null; then \
 		custom-gcl run; \
 	else \
-		echo "custom-gcl not installed, skipping..."; \
+		echo "custom-gcl not installed (go to https://github.com/smeshkov/golangci-lint-plugins), skipping..."; \
 	fi
 
 example: ## Run example
