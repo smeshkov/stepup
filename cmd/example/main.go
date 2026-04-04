@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/smeshkov/stepup/internal/autograd"
 	"github.com/smeshkov/stepup/internal/model"
 	"github.com/smeshkov/stepup/internal/tokenizer"
 )
@@ -97,4 +98,48 @@ func main() {
 		}
 	}
 	fmt.Println("  ... (truncated)")
+
+	// ---------------------------------------------------------
+	// PHASE 4: Autograd Classification (Cross-Entropy + AdamW)
+	// ---------------------------------------------------------
+	fmt.Println("\n=== 🎓 PHASE 4: Autograd Classification (Cross-Entropy + AdamW) ===")
+
+	// Simulate a vocabulary of 3 possible words.
+	// These are our learnable "Logits" (the raw output of a neural network before Softmax)
+	logits := []*autograd.Value{
+		autograd.NewValue(2.0), // Token 0 prediction
+		autograd.NewValue(1.0), // Token 1 prediction
+		autograd.NewValue(0.1), // Token 2 prediction (Currently the lowest probability)
+	}
+
+	// We want the model to learn that Token 2 is the correct answer
+	targetIndex := 2
+
+	// Initialize AdamW optimizer with our 3 parameters
+	optimizer := autograd.NewAdamW(logits, 0.1) // Higher learning rate for quick demo
+
+	epochs := 100
+
+	fmt.Printf("Initial Logits: [%.3f, %.3f, %.3f]\n", logits[0].Data, logits[1].Data, logits[2].Data)
+
+	for epoch := 1; epoch <= epochs; epoch++ {
+		// 1. Forward Pass: Calculate Cross Entropy Loss
+		loss := autograd.CrossEntropyLoss(logits, targetIndex)
+
+		// 2. Backward Pass: Flush old gradients, calculate new ones
+		optimizer.ZeroGrad()
+		loss.Backward()
+
+		// 3. Optimize: Adjust the logits using AdamW
+		optimizer.Step()
+
+		if epoch == 1 || epoch%20 == 0 {
+			fmt.Printf("Epoch %3d | Loss: %7.4f | Logits: [%6.3f, %6.3f, %6.3f]\n",
+				epoch, loss.Data, logits[0].Data, logits[1].Data, logits[2].Data)
+		}
+	}
+
+	fmt.Println("\n=== 🏁 Training Complete ===")
+	fmt.Printf("Final Logits: [%.3f, %.3f, %.3f]\n", logits[0].Data, logits[1].Data, logits[2].Data)
+	fmt.Println("Notice how the Logit for Token 2 surged to the top, while 0 and 1 were suppressed.")
 }

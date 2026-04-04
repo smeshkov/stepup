@@ -1,5 +1,7 @@
 package autograd
 
+import "math"
+
 // Value is a node in our computational graph.
 type Value struct {
 	Data     float32  // The actual mathematical value (the forward pass)
@@ -79,4 +81,57 @@ func (v *Value) Backward() {
 	for i := len(topo) - 1; i >= 0; i-- {
 		topo[i].backward()
 	}
+}
+
+// Sub performs v - other
+func (v *Value) Sub(other *Value) *Value {
+	out := &Value{
+		Data:     v.Data - other.Data,
+		children: []*Value{v, other},
+	}
+	out.backward = func() {
+		v.Grad += 1.0 * out.Grad
+		other.Grad += -1.0 * out.Grad // The derivative of -x is -1
+	}
+	return out
+}
+
+// Div performs v / other
+func (v *Value) Div(other *Value) *Value {
+	out := &Value{
+		Data:     v.Data / other.Data,
+		children: []*Value{v, other},
+	}
+	out.backward = func() {
+		// Quotient rule / Power rule
+		v.Grad += (1.0 / other.Data) * out.Grad
+		other.Grad += (-v.Data / (other.Data * other.Data)) * out.Grad
+	}
+	return out
+}
+
+// Exp calculates e^v
+func (v *Value) Exp() *Value {
+	out := &Value{
+		Data:     float32(math.Exp(float64(v.Data))),
+		children: []*Value{v},
+	}
+	out.backward = func() {
+		// The derivative of e^x is e^x (which is exactly out.Data!)
+		v.Grad += out.Data * out.Grad
+	}
+	return out
+}
+
+// Log calculates the natural logarithm ln(v)
+func (v *Value) Log() *Value {
+	out := &Value{
+		Data:     float32(math.Log(float64(v.Data))),
+		children: []*Value{v},
+	}
+	out.backward = func() {
+		// The derivative of ln(x) is 1/x
+		v.Grad += (1.0 / v.Data) * out.Grad
+	}
+	return out
 }

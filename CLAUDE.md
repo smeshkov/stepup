@@ -11,6 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Phase 1 — Embeddings & Positional Encoding is implemented in `internal/model/model.go`.
 - Phase 1 — Multi-Head Attention is implemented in `internal/model/attention.go`.
 - Phase 1 — Feed-Forward Networks & Layer Norm is implemented in `internal/model/layers.go`.
+- Phase 2 — Autograd is implemented in `internal/autograd/`.
+- Phase 2 — The Training Loop is implemented in `internal/autograd/`.
 
 ## Development process
 
