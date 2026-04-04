@@ -120,7 +120,7 @@ func (t *Tokenizer) Encode(text string) ([]int, error) {
 			minID := -1 // We want to apply the oldest merge (lowest ID) first
 
 			// Find which adjacent pair in our current chunk is the "oldest" known merge
-			for i := 0; i < len(chunkIDs)-1; i++ {
+			for i := range len(chunkIDs) - 1 {
 				pair := Pair{chunkIDs[i], chunkIDs[i+1]}
 				if id, exists := t.Merges[pair]; exists {
 					if minID == -1 || id < minID {

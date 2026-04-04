@@ -19,11 +19,11 @@ fmt: ## Format the code
 vet: ## Run go vet
 	go vet ./...
 
-lint: ## Run golangci-lint if installed
-	@if command -v golangci-lint > /dev/null; then \
-		golangci-lint run; \
+lint: ## Run custom-gcl if installed
+	@if command -v custom-gcl > /dev/null; then \
+		custom-gcl run; \
 	else \
-		echo "golangci-lint not installed, skipping..."; \
+		echo "custom-gcl not installed, skipping..."; \
 	fi
 
 example: ## Run example

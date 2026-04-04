@@ -37,7 +37,7 @@ func chunkText(text string) ([]string, error) {
 func getChunkedStats(chunks [][]int) map[Pair]int {
 	counts := make(map[Pair]int)
 	for _, chunk := range chunks {
-		for i := 0; i < len(chunk)-1; i++ {
+		for i := range len(chunk) - 1 {
 			pair := Pair{chunk[i], chunk[i+1]}
 			counts[pair]++
 		}

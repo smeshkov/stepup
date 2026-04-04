@@ -1,0 +1,11 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - modernfor
+  settings:
+    custom:
+      modernfor:
+        type: module
+        description: Enforces Go 1.22 range over int

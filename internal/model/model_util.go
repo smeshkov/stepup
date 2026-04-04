@@ -5,23 +5,21 @@ import (
 )
 
 // PrecomputePositionalEncoding generates the static sine/cosine matrix.
-func PrecomputePositionalEncoding(maxSeqLen, dModel int) [][]float32 {
-	pe := make([][]float32, maxSeqLen)
+func PrecomputePositionalEncoding(maxSeqLen, dModel int) *Tensor {
+	pe := NewTensor(maxSeqLen, dModel)
 
 	for pos := range maxSeqLen {
-		pe[pos] = make([]float32, dModel)
-
 		for i := 0; i < dModel; i += 2 {
 			// Calculate the frequency denominator
 			denominator := math.Pow(10000.0, float64(i)/float64(dModel))
 			theta := float64(pos) / denominator
 
 			// Even dimensions get Sine
-			pe[pos][i] = float32(math.Sin(theta))
+			pe.Set(pos, i, float32(math.Sin(theta)))
 
 			// Odd dimensions get Cosine
 			if i+1 < dModel {
-				pe[pos][i+1] = float32(math.Cos(theta))
+				pe.Set(pos, i+1, float32(math.Cos(theta)))
 			}
 		}
 	}
@@ -30,7 +28,7 @@ func PrecomputePositionalEncoding(maxSeqLen, dModel int) [][]float32 {
 }
 
 // PrepareInput takes raw token IDs and produces the final embedded sequence.
-func PrepareInput(tokenIDs []int, embLayer *Embedding, peMatrix [][]float32) ([][]float32, error) {
+func PrepareInput(tokenIDs []int, embLayer *Embedding, peMatrix *Tensor) (*Tensor, error) {
 	seqLen := len(tokenIDs)
 
 	// 1. Get the Token Embeddings
@@ -40,15 +38,13 @@ func PrepareInput(tokenIDs []int, embLayer *Embedding, peMatrix [][]float32) ([]
 	}
 
 	dModel := embLayer.DModel
-	finalInput := make([][]float32, seqLen)
+	finalInput := NewTensor(seqLen, dModel)
 
 	// 2. Add the Positional Encoding to the Token Embeddings
-	for pos := 0; pos < seqLen; pos++ {
-		finalInput[pos] = make([]float32, dModel)
-
+	for pos := range seqLen {
 		for i := range dModel {
 			// The critical math: Meaning (Token) + Order (Position)
-			finalInput[pos][i] = tokenEmbeddings[pos][i] + peMatrix[pos][i]
+			finalInput.Set(pos, i, tokenEmbeddings.Get(pos, i)+peMatrix.Get(pos, i))
 		}
 	}
 

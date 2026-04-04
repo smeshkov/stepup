@@ -23,25 +23,25 @@ func NewLayerNorm(dModel int) *LayerNorm {
 	}
 }
 
-func (ln *LayerNorm) Forward(input [][]float32) [][]float32 {
-	seqLen := len(input)
-	dModel := len(input[0])
-	out := make([][]float32, seqLen)
+func (ln *LayerNorm) Forward(input *Tensor) *Tensor {
+	seqLen := input.Rows
+	dModel := input.Cols
+	out := NewTensor(seqLen, dModel)
 
 	for i := range seqLen {
-		out[i] = make([]float32, dModel)
+		row := input.Row(i)
 
 		// 1. Calculate Mean
-		var sum float32 = 0
+		var sum float32
 		for j := range dModel {
-			sum += input[i][j]
+			sum += row[j]
 		}
 		mean := sum / float32(dModel)
 
 		// 2. Calculate Variance
-		var varianceSum float32 = 0
+		var varianceSum float32
 		for j := range dModel {
-			diff := input[i][j] - mean
+			diff := row[j] - mean
 			varianceSum += diff * diff
 		}
 		variance := varianceSum / float32(dModel)
@@ -49,8 +49,8 @@ func (ln *LayerNorm) Forward(input [][]float32) [][]float32 {
 		// 3. Normalize, Scale, and Shift
 		stdDev := float32(math.Sqrt(float64(variance + ln.Eps)))
 		for j := range dModel {
-			normalized := (input[i][j] - mean) / stdDev
-			out[i][j] = normalized*ln.Gamma[j] + ln.Beta[j]
+			normalized := (row[j] - mean) / stdDev
+			out.Set(i, j, normalized*ln.Gamma[j]+ln.Beta[j])
 		}
 	}
 	return out
@@ -58,9 +58,9 @@ func (ln *LayerNorm) Forward(input [][]float32) [][]float32 {
 
 // FeedForward processes each token's representation independently
 type FeedForward struct {
-	W1 [][]float32 // Expands dimensionality (dModel -> dFF)
+	W1 *Tensor // Expands dimensionality (dModel -> dFF)
 	B1 []float32
-	W2 [][]float32 // Projects back down (dFF -> dModel)
+	W2 *Tensor // Projects back down (dFF -> dModel)
 	B2 []float32
 }
 
@@ -74,7 +74,7 @@ func NewFeedForward(dModel int) *FeedForward {
 	}
 }
 
-func (ff *FeedForward) Forward(input [][]float32) [][]float32 {
+func (ff *FeedForward) Forward(input *Tensor) *Tensor {
 	// 1. Linear Expansion: [seqLen, dModel] * [dModel, dFF] -> [seqLen, dFF]
 	hidden := matMul(input, ff.W1)
 	addBias(hidden, ff.B1)
@@ -106,7 +106,7 @@ func NewTransformerBlock(numHeads, dModel int) *TransformerBlock {
 	}
 }
 
-func (tb *TransformerBlock) Forward(input [][]float32) ([][]float32, error) {
+func (tb *TransformerBlock) Forward(input *Tensor) (*Tensor, error) {
 	// Block 1: Attention with Residual Connection
 	// Formula: x = x + Attention(LayerNorm(x))
 	normalized1 := tb.AttnNorm.Forward(input)
@@ -114,13 +114,13 @@ func (tb *TransformerBlock) Forward(input [][]float32) ([][]float32, error) {
 	if err != nil {
 		return nil, err
 	}
-	residual1 := addMatrices(input, attnOut)
+	residual1 := addTensors(input, attnOut)
 
 	// Block 2: FFN with Residual Connection
 	// Formula: x = x + FFN(LayerNorm(x))
 	normalized2 := tb.FFNNorm.Forward(residual1)
 	ffnOut := tb.FFN.Forward(normalized2)
-	finalOut := addMatrices(residual1, ffnOut)
+	finalOut := addTensors(residual1, ffnOut)
 
 	return finalOut, nil
 }

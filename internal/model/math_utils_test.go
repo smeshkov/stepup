@@ -6,32 +6,25 @@ import (
 
 func TestMatMul(t *testing.T) {
 	// A is 2x3
-	a := [][]float32{
-		{1, 2, 3},
-		{4, 5, 6},
-	}
-	// B is 3x2
-	b := [][]float32{
-		{7, 8},
-		{9, 10},
-		{11, 12},
-	}
+	a := NewTensor(2, 3)
+	a.Data = []float32{1, 2, 3, 4, 5, 6}
 
-	expected := [][]float32{
-		{58, 64},
-		{139, 154},
-	}
+	// B is 3x2
+	b := NewTensor(3, 2)
+	b.Data = []float32{7, 8, 9, 10, 11, 12}
+
+	expected := []float32{58, 64, 139, 154}
 
 	result := matMul(a, b)
 
-	if len(result) != 2 || len(result[0]) != 2 {
-		t.Fatalf("Expected 2x2 matrix, got %dx%d", len(result), len(result[0]))
+	if result.Rows != 2 || result.Cols != 2 {
+		t.Fatalf("Expected 2x2 matrix, got %dx%d", result.Rows, result.Cols)
 	}
 
-	for i := 0; i < len(expected); i++ {
-		for j := 0; j < len(expected[i]); j++ {
-			if !almostEqual(result[i][j], expected[i][j], 1e-5) {
-				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i][j], result[i][j])
+	for i := range 2 {
+		for j := range 2 {
+			if !almostEqual(result.Get(i, j), expected[i*2+j], 1e-5) {
+				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i*2+j], result.Get(i, j))
 			}
 		}
 	}
@@ -39,35 +32,30 @@ func TestMatMul(t *testing.T) {
 
 func TestTranspose(t *testing.T) {
 	// 2x3 matrix
-	a := [][]float32{
-		{1, 2, 3},
-		{4, 5, 6},
-	}
+	a := NewTensor(2, 3)
+	a.Data = []float32{1, 2, 3, 4, 5, 6}
 
-	expected := [][]float32{
-		{1, 4},
-		{2, 5},
-		{3, 6},
-	}
+	expected := []float32{1, 4, 2, 5, 3, 6} // 3x2
 
 	result := transpose(a)
 
-	if len(result) != 3 || len(result[0]) != 2 {
-		t.Fatalf("Expected 3x2 matrix, got %dx%d", len(result), len(result[0]))
+	if result.Rows != 3 || result.Cols != 2 {
+		t.Fatalf("Expected 3x2 matrix, got %dx%d", result.Rows, result.Cols)
 	}
 
-	for i := 0; i < len(expected); i++ {
-		for j := 0; j < len(expected[i]); j++ {
-			if !almostEqual(result[i][j], expected[i][j], 1e-5) {
-				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i][j], result[i][j])
+	for i := range 3 {
+		for j := range 2 {
+			if !almostEqual(result.Get(i, j), expected[i*2+j], 1e-5) {
+				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i*2+j], result.Get(i, j))
 			}
 		}
 	}
 }
 
 func TestScaleAndSoftmax(t *testing.T) {
-	// Test matrix with a single row
-	matrix := [][]float32{{2.0, 4.0}}
+	// Test tensor with a single row
+	matrix := NewTensor(1, 2)
+	matrix.Data = []float32{2.0, 4.0}
 	scale := float32(2.0)
 
 	// Step 1: Scale -> [1.0, 2.0]
@@ -78,8 +66,9 @@ func TestScaleAndSoftmax(t *testing.T) {
 
 	scaleAndSoftmax(matrix, scale)
 
-	var sum float32 = 0
-	for j, val := range matrix[0] {
+	var sum float32
+	row := matrix.Row(0)
+	for j, val := range row {
 		if !almostEqual(val, expected[j], 1e-4) {
 			t.Errorf("Softmax mismatch at index %d: expected %f, got %f", j, expected[j], val)
 		}
@@ -92,50 +81,54 @@ func TestScaleAndSoftmax(t *testing.T) {
 	}
 }
 
-func TestAddMatrices(t *testing.T) {
-	a := [][]float32{{1, 2}, {3, 4}}
-	b := [][]float32{{5, 6}, {7, 8}}
-	expected := [][]float32{{6, 8}, {10, 12}}
+func TestAddTensors(t *testing.T) {
+	a := NewTensor(2, 2)
+	a.Data = []float32{1, 2, 3, 4}
+	b := NewTensor(2, 2)
+	b.Data = []float32{5, 6, 7, 8}
+	expected := []float32{6, 8, 10, 12}
 
-	result := addMatrices(a, b)
+	result := addTensors(a, b)
 
-	for i := range expected {
-		for j := range expected[i] {
-			if !almostEqual(result[i][j], expected[i][j], 1e-5) {
-				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i][j], result[i][j])
+	for i := range 2 {
+		for j := range 2 {
+			if !almostEqual(result.Get(i, j), expected[i*2+j], 1e-5) {
+				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i*2+j], result.Get(i, j))
 			}
 		}
 	}
 }
 
 func TestAddBias(t *testing.T) {
-	matrix := [][]float32{{1, 2}, {3, 4}}
+	matrix := NewTensor(2, 2)
+	matrix.Data = []float32{1, 2, 3, 4}
 	bias := []float32{10, 20}
-	expected := [][]float32{{11, 22}, {13, 24}}
+	expected := []float32{11, 22, 13, 24}
 
-	// addBias mutates the matrix in place
+	// addBias mutates the tensor in place
 	addBias(matrix, bias)
 
-	for i := range expected {
-		for j := range expected[i] {
-			if !almostEqual(matrix[i][j], expected[i][j], 1e-5) {
-				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i][j], matrix[i][j])
+	for i := range 2 {
+		for j := range 2 {
+			if !almostEqual(matrix.Get(i, j), expected[i*2+j], 1e-5) {
+				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i*2+j], matrix.Get(i, j))
 			}
 		}
 	}
 }
 
 func TestRelu(t *testing.T) {
-	matrix := [][]float32{{-1.5, 0.0}, {2.5, -99.9}}
-	expected := [][]float32{{0.0, 0.0}, {2.5, 0.0}}
+	matrix := NewTensor(2, 2)
+	matrix.Data = []float32{-1.5, 0.0, 2.5, -99.9}
+	expected := []float32{0.0, 0.0, 2.5, 0.0}
 
-	// relu mutates the matrix in place
+	// relu mutates the tensor in place
 	relu(matrix)
 
-	for i := range expected {
-		for j := range expected[i] {
-			if !almostEqual(matrix[i][j], expected[i][j], 1e-5) {
-				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i][j], matrix[i][j])
+	for i := range 2 {
+		for j := range 2 {
+			if !almostEqual(matrix.Get(i, j), expected[i*2+j], 1e-5) {
+				t.Errorf("Mismatch at [%d][%d]: expected %f, got %f", i, j, expected[i*2+j], matrix.Get(i, j))
 			}
 		}
 	}

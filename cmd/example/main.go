@@ -61,15 +61,14 @@ func main() {
 	// RESULTS: The Output Tensor
 	// ---------------------------------------------------------
 	fmt.Println("\n=== 🎯 Pipeline Complete ===")
-	fmt.Printf("Input Sequence Length : %d tokens\n", len(tensor))
-	fmt.Printf("Model Dimension       : %d features per token\n", len(tensor[0]))
+	fmt.Printf("Input Sequence Length : %d tokens\n", tensor.Rows)
+	fmt.Printf("Model Dimension       : %d features per token\n", tensor.Cols)
 
 	fmt.Println("\nFirst Token Vector (Meaning + Position):")
 	// Print the first few floats of the first token to prove we have geometry
-	for i, val := range tensor[0] {
-		if i < 4 {
-			fmt.Printf("  Dim %d: %f\n", i, val)
-		}
+	firstRow := tensor.Row(0)
+	for i := range 4 {
+		fmt.Printf("  Dim %d: %f\n", i, firstRow[i])
 	}
 	fmt.Println("  ... (truncated)")
 
@@ -88,14 +87,13 @@ func main() {
 	}
 
 	fmt.Println("\n=== 🧠 First Transformer Block Complete ===")
-	fmt.Printf("Input  Shape : %d tokens x %d dimensions\n", len(tensor), len(tensor[0]))
-	fmt.Printf("Output Shape : %d tokens x %d dimensions\n", len(finalBlockOutput), len(finalBlockOutput[0]))
+	fmt.Printf("Input  Shape : %d tokens x %d dimensions\n", tensor.Rows, tensor.Cols)
+	fmt.Printf("Output Shape : %d tokens x %d dimensions\n", finalBlockOutput.Rows, finalBlockOutput.Cols)
 
 	fmt.Println("\nFinal Processed Vector for Token 0:")
-	for i, val := range finalBlockOutput[0] {
-		if i < 4 {
-			fmt.Printf("  Dim %d: %f\n", i, val)
-		}
+	finalRow := finalBlockOutput.Row(0)
+	for i := range 4 {
+		fmt.Printf("  Dim %d: %f\n", i, finalRow[i])
 	}
 	fmt.Println("  ... (truncated)")
 
