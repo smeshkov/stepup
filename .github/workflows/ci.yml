@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  CUSTOM_GCL_VERSION: v0.0.5  # pin to a release tag
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -34,13 +37,11 @@ jobs:
       # - name: golangci-lint
       #   uses: golangci/golangci-lint-action@v9      
       
-      # Install golangci-lint v2
-      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4
-      
-      # Build the custom binary with plugins
-      - run: golangci-lint custom
-      
-      # Run linting
+      - name: Download custom-gcl
+        run: |
+          curl -sL "https://github.com/smeshkov/golangci-lint-plugins/releases/download/${CUSTOM_GCL_VERSION}/custom-gcl-linux-amd64.tar.gz" | tar xz
+          chmod +x custom-gcl
+
       - run: ./custom-gcl run ./...
 
       # - name: Build
