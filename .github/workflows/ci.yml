@@ -31,8 +31,17 @@ jobs:
       - name: Vet
         run: make vet
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9      
+      # - name: golangci-lint
+      #   uses: golangci/golangci-lint-action@v9      
+      
+      # Install golangci-lint v2
+      - run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4
+      
+      # Build the custom binary with plugins
+      - run: golangci-lint custom
+      
+      # Run linting
+      - run: ./custom-gcl run ./...
 
       # - name: Build
       #   run: make build
