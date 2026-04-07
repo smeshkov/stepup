@@ -17,6 +17,10 @@
       "Bash(make fmt)",
       "Bash(make checkfmt)",
       "Bash(make vet)"
+    ],
+    "deny": [
+      "edit _docs/*",
+      "rm -rf *"
     ]
   }
 }
