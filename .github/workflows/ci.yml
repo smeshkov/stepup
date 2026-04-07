@@ -32,10 +32,7 @@ jobs:
           fi
 
       - name: Vet
-        run: make vet
-
-      # - name: golangci-lint
-      #   uses: golangci/golangci-lint-action@v9      
+        run: make vet 
       
       - name: Download custom-gcl
         run: |
@@ -43,9 +40,6 @@ jobs:
           chmod +x custom-gcl
 
       - run: ./custom-gcl run ./...
-
-      # - name: Build
-      #   run: make build
 
       - name: Test
         run: make test
