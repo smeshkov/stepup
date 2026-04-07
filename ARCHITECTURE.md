@@ -12,6 +12,7 @@
   - `attention.go` — `MultiHeadAttention` and `Head` structs with `Forward()` and `ForwardCached()` (KV caching for autoregressive generation), plus `ResetCache()` to clear cached state
   - `layers.go` — `LayerNorm`, `FeedForward`, and `TransformerBlock` structs with `Forward()` and `ForwardCached()` methods, plus `ResetCache()`
   - `math_utils.go` — Linear algebra helpers: `matMul`, `transpose`, `scaleAndSoftmax`, `addTensors`, `addBias`, `relu` — all operating on `*Tensor`
+  - `sampling.go` — Token sampling strategies: `SampleGreedy` (argmax), `SampleTemperature` (softmax with temperature scaling), `SampleTopP` (nucleus sampling with cumulative probability cutoff)
 
 ## Key Design Decisions
 
@@ -24,3 +25,4 @@
 - **Pre-norm architecture**: `TransformerBlock` applies `LayerNorm` *before* attention and FFN (Pre-LN), not after — this is more stable during training than the original Post-LN design
 - **Residual connections**: Each sub-block uses `x + SubLayer(LayerNorm(x))` to preserve gradient flow through deep stacks
 - **FFN expansion factor**: `FeedForward` expands to 4× `dModel` (standard transformer ratio) with ReLU activation
+- **Sampling strategies**: Three decoding methods — greedy (deterministic argmax), temperature (controls distribution sharpness), and top-p/nucleus (dynamic vocabulary cutoff based on cumulative probability)

@@ -15,10 +15,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Phase 2 — The Training Loop is implemented in `internal/autograd/`.
 - Phase 2 — Memory Management is implemented in `internal/model/tensor.go`.
 - Phase 3 — KV Caching is implemented in `internal/model/attention.go`.
+- Phase 3 — Sampling Strategies is implemented in `internal/model/sampling.go`.
 
 ## Development process
 
-- `make lint` and `make test` must pass.
+- `make checkfmt`, `make lint` and `make test` must pass.
 - always make sure to add tests for any new code you write.
 - tests should be placed next to the code they test.
 - never modify schema without migrations.
