@@ -4,7 +4,11 @@
       "Bash(go:*)",
       "Bash(go run *)",
       "Bash(go build *)",
-      "Bash(go test *)"
+      "Bash(go test *)",
+      "Bash(make test)",
+      "Bash(make lint)",
+      "Bash(make fmt)",
+      "Bash(make vet)"
     ]
   }
 }

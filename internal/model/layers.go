@@ -124,3 +124,27 @@ func (tb *TransformerBlock) Forward(input *Tensor) (*Tensor, error) {
 
 	return finalOut, nil
 }
+
+// ForwardCached runs the transformer block with KV caching for autoregressive generation.
+// Only new token(s) are passed through; attention uses cached K/V from prior steps.
+func (tb *TransformerBlock) ForwardCached(input *Tensor) (*Tensor, error) {
+	// Block 1: Attention with Residual Connection
+	normalized1 := tb.AttnNorm.Forward(input)
+	attnOut, err := tb.Attn.ForwardCached(normalized1)
+	if err != nil {
+		return nil, err
+	}
+	residual1 := addTensors(input, attnOut)
+
+	// Block 2: FFN with Residual Connection
+	normalized2 := tb.FFNNorm.Forward(residual1)
+	ffnOut := tb.FFN.Forward(normalized2)
+	finalOut := addTensors(residual1, ffnOut)
+
+	return finalOut, nil
+}
+
+// ResetCache clears the KV cache in the attention layer.
+func (tb *TransformerBlock) ResetCache() {
+	tb.Attn.ResetCache()
+}
