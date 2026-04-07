@@ -102,7 +102,7 @@ func TestSoftmax_SumsToOne(t *testing.T) {
 func TestSoftmax_TemperatureScaling(t *testing.T) {
 	logits := []float32{1.0, 2.0, 3.0}
 
-	cold := softmax(logits, 0.1) // sharp distribution
+	cold := softmax(logits, 0.1)  // sharp distribution
 	warm := softmax(logits, 10.0) // flat distribution
 
 	// Cold: highest logit (idx 2) should have much higher probability

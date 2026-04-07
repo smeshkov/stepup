@@ -13,6 +13,13 @@ build: ## Compile the binary
 test: ## Run unit tests
 	go test -v ./...
 
+checkfmt: ## Check if the code is formatted
+	@if [ -n "$$(gofmt -l .)" ]; then \
+		echo "Go code is not formatted. Run 'make fmt'."; \
+		gofmt -d .; \
+		exit 1; \
+	fi
+
 fmt: ## Format the code
 	go fmt ./...
 

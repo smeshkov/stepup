@@ -140,4 +140,37 @@ func main() {
 	fmt.Println("\n=== 🏁 Training Complete ===")
 	fmt.Printf("Final Logits: [%.3f, %.3f, %.3f]\n", logits[0].Data, logits[1].Data, logits[2].Data)
 	fmt.Println("Notice how the Logit for Token 2 surged to the top, while 0 and 1 were suppressed.")
+
+	// ---------------------------------------------------------
+	// PHASE 5: Sampling Strategies
+	// ---------------------------------------------------------
+	fmt.Println("\n=== 🎲 PHASE 5: Sampling Strategies ===")
+
+	// Use the trained logits as raw scores for sampling
+	rawLogits := []float32{float32(logits[0].Data), float32(logits[1].Data), float32(logits[2].Data)}
+	fmt.Printf("Logits: [%.3f, %.3f, %.3f]\n\n", rawLogits[0], rawLogits[1], rawLogits[2])
+
+	// 1. Greedy: always picks the highest logit
+	greedy := model.SampleGreedy(rawLogits)
+	fmt.Printf("Greedy       → Token %d (always picks the most likely)\n", greedy)
+
+	// 2. Temperature sampling at different temperatures
+	fmt.Println("\nTemperature sampling (10 samples each):")
+	for _, temp := range []float32{0.1, 1.0, 5.0} {
+		samples := make([]int, 10)
+		for i := range samples {
+			samples[i] = model.SampleTemperature(rawLogits, temp)
+		}
+		fmt.Printf("  T=%.1f → %v\n", temp, samples)
+	}
+
+	// 3. Top-P (nucleus) sampling
+	fmt.Println("\nTop-P sampling (10 samples each):")
+	for _, p := range []float32{0.5, 0.9, 0.99} {
+		samples := make([]int, 10)
+		for i := range samples {
+			samples[i] = model.SampleTopP(rawLogits, 1.0, p)
+		}
+		fmt.Printf("  p=%.2f → %v\n", p, samples)
+	}
 }
