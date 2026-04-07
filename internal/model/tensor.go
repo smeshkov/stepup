@@ -41,3 +41,12 @@ func (t *Tensor) Zero() {
 		t.Data[i] = 0
 	}
 }
+
+// AppendRows appends all rows from other to the bottom of t, returning a new Tensor.
+// The column count must match.
+func (t *Tensor) AppendRows(other *Tensor) *Tensor {
+	out := NewTensor(t.Rows+other.Rows, t.Cols)
+	copy(out.Data, t.Data)
+	copy(out.Data[len(t.Data):], other.Data)
+	return out
+}

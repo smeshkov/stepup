@@ -88,6 +88,32 @@ func TestTensor_Zero(t *testing.T) {
 	}
 }
 
+func TestTensor_AppendRows(t *testing.T) {
+	a := NewTensor(2, 3)
+	a.Data = []float32{1, 2, 3, 4, 5, 6}
+
+	b := NewTensor(1, 3)
+	b.Data = []float32{7, 8, 9}
+
+	result := a.AppendRows(b)
+
+	if result.Rows != 3 || result.Cols != 3 {
+		t.Fatalf("Expected 3x3, got %dx%d", result.Rows, result.Cols)
+	}
+
+	expected := []float32{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	for i, v := range expected {
+		if result.Data[i] != v {
+			t.Errorf("Mismatch at index %d: expected %f, got %f", i, v, result.Data[i])
+		}
+	}
+
+	// Original tensors should be unchanged
+	if a.Rows != 2 {
+		t.Error("AppendRows should not mutate the original tensor")
+	}
+}
+
 func TestTensor_SingleAllocation(t *testing.T) {
 	// Verify that a 1000x1000 tensor uses exactly 1 backing array
 	// (not 1001 allocations like [][]float32 would)

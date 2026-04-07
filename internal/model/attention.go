@@ -16,10 +16,12 @@ func initWeights(rows, cols int) *Tensor {
 
 // Head represents a single Attention head.
 type Head struct {
-	DHead int
-	Wq    *Tensor // Projects from [DModel] to [DHead]
-	Wk    *Tensor
-	Wv    *Tensor
+	DHead  int
+	Wq     *Tensor // Projects from [DModel] to [DHead]
+	Wk     *Tensor
+	Wv     *Tensor
+	KCache *Tensor // Accumulated Key matrices from previous tokens
+	VCache *Tensor // Accumulated Value matrices from previous tokens
 }
 
 func NewHead(dModel, dHead int) *Head {
@@ -50,6 +52,44 @@ func (h *Head) Forward(input *Tensor) *Tensor {
 	out := matMul(scores, V)
 
 	return out
+}
+
+// ForwardCached runs attention using the KV cache for efficient autoregressive generation.
+// It takes only the new token(s), computes their K/V, appends to the cache, and runs
+// attention against the full cached history. Returns output for the new tokens only.
+func (h *Head) ForwardCached(input *Tensor) *Tensor {
+	// 1. Compute Q, K, V for the NEW tokens only
+	Q := matMul(input, h.Wq) // [newTokens, dHead]
+	K := matMul(input, h.Wk) // [newTokens, dHead]
+	V := matMul(input, h.Wv) // [newTokens, dHead]
+
+	// 2. Append new K and V to the cache
+	if h.KCache == nil {
+		h.KCache = K
+		h.VCache = V
+	} else {
+		h.KCache = h.KCache.AppendRows(K)
+		h.VCache = h.VCache.AppendRows(V)
+	}
+
+	// 3. Compute attention scores: Q_new * K_all^T -> [newTokens, totalSeqLen]
+	K_T := transpose(h.KCache)
+	scores := matMul(Q, K_T)
+
+	// 4. Scale and Softmax
+	scaleFactor := float32(math.Sqrt(float64(h.DHead)))
+	scaleAndSoftmax(scores, scaleFactor)
+
+	// 5. Weighted sum over all cached Values: [newTokens, totalSeqLen] * [totalSeqLen, dHead]
+	out := matMul(scores, h.VCache)
+
+	return out
+}
+
+// ResetCache clears the KV cache, preparing the head for a new sequence.
+func (h *Head) ResetCache() {
+	h.KCache = nil
+	h.VCache = nil
 }
 
 // MultiHeadAttention manages multiple independent Heads and mixes their outputs.
@@ -110,4 +150,36 @@ func (mha *MultiHeadAttention) Forward(input *Tensor) (*Tensor, error) {
 	finalOut := matMul(concatOut, mha.Wo)
 
 	return finalOut, nil
+}
+
+// ForwardCached runs all heads with KV caching for autoregressive generation.
+func (mha *MultiHeadAttention) ForwardCached(input *Tensor) (*Tensor, error) {
+	newTokens := input.Rows
+
+	headOutputs := make([]*Tensor, mha.NumHeads)
+	for i, head := range mha.Heads {
+		headOutputs[i] = head.ForwardCached(input)
+	}
+
+	// Concatenate head outputs: [newTokens, dHead] * NumHeads -> [newTokens, dModel]
+	concatOut := NewTensor(newTokens, mha.DModel)
+	for i := range newTokens {
+		colOffset := 0
+		for h := range mha.NumHeads {
+			for j := range mha.DHead {
+				concatOut.Set(i, colOffset+j, headOutputs[h].Get(i, j))
+			}
+			colOffset += mha.DHead
+		}
+	}
+
+	finalOut := matMul(concatOut, mha.Wo)
+	return finalOut, nil
+}
+
+// ResetCache clears the KV cache on all heads.
+func (mha *MultiHeadAttention) ResetCache() {
+	for _, head := range mha.Heads {
+		head.ResetCache()
+	}
 }
