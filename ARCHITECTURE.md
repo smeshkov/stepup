@@ -13,6 +13,7 @@
   - `layers.go` — `LayerNorm`, `FeedForward`, and `TransformerBlock` structs with `Forward()` and `ForwardCached()` methods, plus `ResetCache()`
   - `math_utils.go` — Linear algebra helpers: `matMul`, `transpose`, `scaleAndSoftmax`, `addTensors`, `addBias`, `relu` — all operating on `*Tensor`
   - `sampling.go` — Token sampling strategies: `SampleGreedy` (argmax), `SampleTemperature` (softmax with temperature scaling), `SampleTopP` (nucleus sampling with cumulative probability cutoff)
+  - `inference.go` — `InferenceEngine` struct with `Infer()` (single request) and `RunBatch()` (concurrent batched inference using goroutine worker pool)
 
 ## Key Design Decisions
 
@@ -26,3 +27,4 @@
 - **Residual connections**: Each sub-block uses `x + SubLayer(LayerNorm(x))` to preserve gradient flow through deep stacks
 - **FFN expansion factor**: `FeedForward` expands to 4× `dModel` (standard transformer ratio) with ReLU activation
 - **Sampling strategies**: Three decoding methods — greedy (deterministic argmax), temperature (controls distribution sharpness), and top-p/nucleus (dynamic vocabulary cutoff based on cumulative probability)
+- **Concurrent Batched Inference**: `RunBatch()` processes multiple requests in parallel using a goroutine worker pool with semaphore-based concurrency limiting, maximizing GPU utilization while preserving result order

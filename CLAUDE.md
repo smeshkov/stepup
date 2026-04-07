@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Phase 2 — Memory Management is implemented in `internal/model/tensor.go`.
 - Phase 3 — KV Caching is implemented in `internal/model/attention.go`.
 - Phase 3 — Sampling Strategies is implemented in `internal/model/sampling.go`.
+- Phase 3 - Concurrency is implemented in `internal/model/inference.go`.
 
 ## Development process
 

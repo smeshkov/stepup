@@ -1,6 +1,13 @@
 {
   "permissions": {
     "allow": [
+      "Bash(git *)",
+      "edit .github/*",
+      "edit cmd/*",
+      "edit internal/*",
+      "edit Makefile",
+      "edit CLAUDE.md",
+      "edit ARCHITECTURE.md",
       "Bash(go:*)",
       "Bash(go run *)",
       "Bash(go build *)",
