@@ -2,12 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(git *)",
-      "Edit .github/**",
-      "Edit cmd/**",
-      "Edit internal/**",
-      "Edit Makefile",
-      "Edit CLAUDE.md",
-      "Edit ARCHITECTURE.md",
+      "Edit(.github/**)",
+      "Edit(cmd/**)",
+      "Edit(internal/**)",
+      "Edit(Makefile)",
+      "Edit(CLAUDE.md)",
+      "Edit(ARCHITECTURE.md)",
       "Bash(go:*)",
       "Bash(go run *)",
       "Bash(go build *)",
@@ -19,8 +19,8 @@
       "Bash(make vet)"
     ],
     "deny": [
-      "Edit _docs/**",
-      "Edit .claude/**",
+      "Edit(_docs/**)",
+      "Edit(.claude/**)",
       "Bash(rm -rf *)"
     ]
   }

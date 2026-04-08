@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 env:
-  CUSTOM_GCL_VERSION: v0.0.5  # pin to a release tag
+  CUSTOM_GCL_VERSION: v0.0.6  # pin to a release tag
 
 jobs:
   test:

@@ -1,5 +1,0 @@
-version: v2.11.4
-plugins:
-  - module: 'github.com/smeshkov/golangci-lint-plugins'
-    import: 'github.com/smeshkov/golangci-lint-plugins/modernfor/plugin'
-    version: v0.0.4
